@@ -31,6 +31,6 @@ def load_mappers(path = r'..\data\processed\mappers.json'):
     with open(path,'r') as f:
         json_mappers = json.load(f)
         raw_user_id_map = json_mappers.get('user_id_map')
-        isbn_map = json_mappers.get('book_id_map')
+        isbn_map = json_mappers.get('isbn_map')
         user_id_map = {int(k):i for k,i in raw_user_id_map.items()}
     return user_id_map, isbn_map
