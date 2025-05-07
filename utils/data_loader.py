@@ -32,5 +32,13 @@ def load_mappers(path = r'..\data\processed\mappers.json'):
         json_mappers = json.load(f)
         raw_user_id_map = json_mappers.get('user_id_map')
         isbn_map = json_mappers.get('isbn_map')
-        user_id_map = {int(k):i for k,i in raw_user_id_map.items()}
-    return user_id_map, isbn_map
+        raw_user_id_map_inv = json_mappers.get('user_id_map_inv')
+        isbn_map_inv = json_mappers.get('isbn_map_inv')
+
+        user_id_map = {int(k): int(v) for k, v in raw_user_id_map.items()}
+        user_id_map_inv = {int(k): int(v) for k, v in raw_user_id_map_inv.items()}
+        isbn_map = {k: int(v) for k, v in isbn_map.items()}
+        isbn_map_inv = {int(k): v for k, v in isbn_map_inv.items()}
+
+    return user_id_map, isbn_map, user_id_map_inv, isbn_map_inv
+

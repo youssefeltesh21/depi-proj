@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-from scipy.sparse import csr_matrix
 
 
 def clean_ratings(ratings_df):
@@ -50,18 +49,12 @@ def apply_k_core_filtering(ratings_df, min_ratings_user=5, min_ratings_book=7):
     return ratings_df
 
 
-def build_user_item_matrix(ratings_df):
-    """Create sparse user-item matrix in CSR format"""
-    num_users = len(ratings_df["User-ID"].unique())
-    num_books = len(ratings_df["ISBN"].unique())
+def build_mappers(ratings_df):
+    """Create mappers"""
 
-    user_id_map = dict(zip(np.sort(ratings_df["User-ID"].unique()), range(num_users)))
-    isbn_map = dict(zip(np.sort(ratings_df["ISBN"].unique()), range(num_books)))
+    user_id_map = {k:i for i,k in enumerate(ratings_df["User-ID"].unique())}
+    isbn_map = {k: i for i, k in enumerate(ratings_df["ISBN"].unique())}
+    user_id_map_inv = {i: k for k, i in user_id_map.items()}
+    isbn_map_inv = {i: k for k, i in isbn_map.items()}
 
-    user_indices = [user_id_map[uid] for uid in ratings_df["User-ID"]]
-    book_indices = [isbn_map[isbn] for isbn in ratings_df["ISBN"]]
-
-    return csr_matrix(
-        (ratings_df["Book-Rating"].values, (user_indices, book_indices)),
-        shape=(num_users, num_books)
-    ), user_id_map, isbn_map
+    return user_id_map, isbn_map, user_id_map_inv, isbn_map_inv
