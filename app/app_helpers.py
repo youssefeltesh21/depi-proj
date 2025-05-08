@@ -55,6 +55,4 @@ def add_rating(user_id : int,
 
 
 if __name__ == "__main__":
-
-    add_new_user("abood","ab123")
-    add_rating(278844,"0836236688", 10)
+    pass
