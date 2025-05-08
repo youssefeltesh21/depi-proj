@@ -6,7 +6,7 @@ ratings = load_cleaned_ratings()
 
 class SVDF:
 
-    def __init__(self, n_factors = 30 , lr = 0.005, reg = 0.02, n_epochs = 20, random_state = 42):
+    def __init__(self, n_factors = 100 , lr = 0.02, reg = 0.02, n_epochs = 70, random_state = 42):
         self.k = n_factors
         self.lr = lr
         self.reg = reg
