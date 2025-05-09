@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
 from utils.data_loader import *
+import pickle
 
 ratings = load_cleaned_ratings()
 
-class SVDF:
+class FunkSVD:
 
     def __init__(self, n_factors = 100 , lr = 0.02, reg = 0.02, n_epochs = 70, random_state = 42):
         self.k = n_factors
@@ -45,7 +46,6 @@ class SVDF:
 
         return self
 
-
     def predict(self, user_id, isbn):
         user_indx = self.user_id_map[user_id]
         item_indx = self.isbn_map[isbn]
@@ -71,3 +71,14 @@ class SVDF:
         top_n_scores_indx = np.argsort(scores)[-N:]
         recommended_isbns = [self.isbn_map_inv[i] for i in top_n_scores_indx]
         return recommended_isbns[::-1]
+
+
+
+def build_trained_model(path = r'..\models\collaborative_filtering_model.pkl'):
+    model = FunkSVD()
+    model.fit()
+
+    with open(path, 'wb') as f:
+        pickle.dump(model, f)
+    print(f"Model saved successfully to {path}")
+
