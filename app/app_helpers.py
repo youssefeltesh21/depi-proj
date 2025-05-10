@@ -22,11 +22,11 @@ def add_new_user(user_name,password,
 
     if (user_name in input_df["User-Name"].values) or (user_id in input_df.values):
         print("User already exists")
-        return
+        return False
 
     if len(password) < 4:
         print("Password must be at least 4 characters")
-        return
+        return False
 
     new_user_row = [user_id,user_name,loc,Age,password]
     with open(path, "a",newline='') as f:
@@ -36,7 +36,7 @@ def add_new_user(user_name,password,
 
     input_df.iloc[-1] = new_user_row
     build_mappers(load_cleaned_ratings())
-
+    return True
 
 def add_rating(user_id : int,
                isbn : str,
@@ -52,7 +52,7 @@ def add_rating(user_id : int,
 
     if (user_id in user_isbns_df) and (isbn in user_isbns_df.loc[user_id]):
         print("User already rated that book")
-        return
+        return False
 
     new_rating = [int(user_id),str(isbn),float(rating)]
 
@@ -63,6 +63,7 @@ def add_rating(user_id : int,
 
     input_df.iloc[-1] = new_rating
     build_mappers(load_cleaned_ratings())
+    return True
 
 
 def expand_model_for_new_users(model, ratings_df, save_path='../models/collaborative_filtering_model.pkl'):
@@ -104,8 +105,9 @@ def personalize_model_for_user(model, user_id, ratings_df,
     return model
 
 def save_trained_model(model, path  = '../models/collaborative_filtering_model.pkl'):
+    import dill
     with open(path, 'wb') as f:
-        pickle.dump(model, f)
+        dill.dump(model, f)
     print(f"Model saved to {path} successfully")
 
 '''## Usage:
