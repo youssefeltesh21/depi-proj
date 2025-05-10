@@ -101,21 +101,27 @@ def personalize_model_for_user(model, user_id, ratings_df,
 
             model.P[user_idx] = model.P[user_idx] + model.lr * (err * model.Q[isbn] - model.reg * model.P[user_idx])
 
-    with open(save_path, 'wb') as f:
-        pickle.dump(model, f)
     return model
+
+def save_trained_model(model, path  = '../models/collaborative_filtering_model.pkl'):
+    with open(path, 'wb') as f:
+        pickle.dump(model, f)
+    print(f"Model saved to {path} successfully")
 
 '''## Usage:
 if __name__ == "__main__":
-    add_new_user("Abdallah", "ab1234")
-    add_rating(278844, '059035342X', 8)
-    add_rating(278844, '0804106304', 8)
-    add_rating(278844, '0743412028', 8)
-    add_rating(278844, '0380002450', 9)
+    ratings_df = load_cleaned_ratings()
+    users_df = load_cleaned_users()
+
+    add_new_user("Abdallah", "ab1234",input_df = users_df)
+    add_rating(278844, '059035342X', 8,input_df= ratings_df)
+    add_rating(278844, '0804106304', 8,input_df= ratings_df)
+    add_rating(278844, '0743412028', 8,input_df= ratings_df)
+    add_rating(278844, '0380002450', 9,input_df= ratings_df)
 
     model = load_trained_model()
-    model = expand_model_for_new_users(model, load_cleaned_ratings())
+    model = expand_model_for_new_users(model,ratings_df)
     model = personalize_model_for_user(model, 278844, ratings_df)
 
     print(model.recommend(278844))
-'''
+    save_trained_model(model)'''
