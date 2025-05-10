@@ -65,14 +65,57 @@ def add_rating(user_id : int,
     build_mappers(load_cleaned_ratings())
 
 
-if __name__ == "__main__":
-    add_new_user("Abdallah","ab1234")
-    add_rating(278844,'059035342X',8)
-    add_rating(278844,'0451523415',9)
-    add_rating(278844, '0804106304', 8)
-    add_rating(278844, '0060928336', 9)
+def expand_model_for_new_users(model, ratings_df, save_path='../models/collaborative_filtering_model.pkl'):
+    """Update an existing model to handle new users"""
+    new_maps = load_mappers()
+    model.user_id_map = new_maps[0]
+    model.isbn_map = new_maps[1]
+    model.user_id_map_inv = new_maps[2]
+    model.isbn_map_inv = new_maps[3]
 
-    model = FunkSVD()
-    model.fit()
+    # Expand P matrix for new users if needed
+    old_user_count = model.P.shape[0]
+    new_user_count = len(model.user_id_map)
+
+    if new_user_count > old_user_count:
+        # Create P vectors for new users
+        new_rows = model.rng.normal(0, 0.1, (new_user_count - old_user_count, model.k))
+        model.P = np.vstack([model.P, new_rows])
+
+    return model
+
+
+def personalize_model_for_user(model, user_id, ratings_df,
+                                save_path='../models/collaborative_filtering_model.pkl'):
+
+    """Train factors just for a specific user"""
+    user_ratings_df = ratings_df[ratings_df["User-ID"] == user_id]
+    user_idx = model.user_id_map[user_id]
+    isbn_indices = [model.isbn_map[isbn] for isbn in user_ratings_df["ISBN"].values]
+    ratings_values = user_ratings_df["Book-Rating"].values
+
+    for epoch in range(model.n_epochs):
+        for isbn, rating in zip(isbn_indices, ratings_values):
+            pred = model.P[user_idx] @ model.Q[isbn]
+            err = rating - pred
+
+            model.P[user_idx] = model.P[user_idx] + model.lr * (err * model.Q[isbn] - model.reg * model.P[user_idx])
+
+    with open(save_path, 'wb') as f:
+        pickle.dump(model, f)
+    return model
+
+'''## Usage:
+if __name__ == "__main__":
+    add_new_user("Abdallah", "ab1234")
+    add_rating(278844, '059035342X', 8)
+    add_rating(278844, '0804106304', 8)
+    add_rating(278844, '0743412028', 8)
+    add_rating(278844, '0380002450', 9)
+
+    model = load_trained_model()
+    model = expand_model_for_new_users(model, load_cleaned_ratings())
+    model = personalize_model_for_user(model, 278844, ratings_df)
 
     print(model.recommend(278844))
+'''
