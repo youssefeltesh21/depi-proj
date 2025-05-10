@@ -2,7 +2,15 @@ import pandas as pd
 from scipy.sparse import load_npz
 import json
 import os
-import pickle
+import os
+import sys
+from pathlib import Path
+
+parent_dir = str(Path(__file__).parent.parent.resolve())
+sys.path.append(parent_dir)
+
+import dill
+
 
 def load_books(path = r'..\data\raw\Books.csv'):
     books = pd.read_csv(path,sep=';',on_bad_lines='skip',encoding = 'latin-1', low_memory=False)
@@ -43,8 +51,14 @@ def load_mappers(path = r'..\data\processed\mappers.json'):
 
     return user_id_map, isbn_map, user_id_map_inv, isbn_map_inv
 
-def load_trained_model(path = r'..\models\collaborative_filtering_model.pkl'):
-    with open(path,'rb') as f:
-        model = pickle.load(f)
+def load_trained_model(path=None):
 
-    return model
+    from recommender.collaborative_filtering import FunkSVD
+    if path is None:
+        path = os.path.join('..', 'models', 'collaborative_filtering_model.pkl')
+    try:
+        with open(path, 'rb') as f:
+            return dill.load(f)
+    except Exception as e:
+        print(f"Error loading model: {str(e)}")
+        raise
