@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+import json
 
 def clean_ratings(ratings_df):
     """Clean ratings dataframe by removing zeros and nulls"""
@@ -57,4 +57,13 @@ def build_mappers(ratings_df):
     user_id_map_inv = {i: k for k, i in user_id_map.items()}
     isbn_map_inv = {i: k for k, i in isbn_map.items()}
 
-    return user_id_map, isbn_map, user_id_map_inv, isbn_map_inv
+    user_id_map_str_keys = {str(k): int(v) for k, v in user_id_map.items()}
+    user_id_map_inv_str_keys = {str(k): int(v) for k, v in user_id_map_inv.items()}
+
+    mappers_to_save = {"user_id_map": user_id_map_str_keys,
+                       "isbn_map": isbn_map,
+                       "user_id_map_inv": user_id_map_inv_str_keys,
+                       "isbn_map_inv": isbn_map_inv}
+
+    with open("../data/processed/mappers.json", "w") as f:
+        json.dump(mappers_to_save, f, indent=4)
