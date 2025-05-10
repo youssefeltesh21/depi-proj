@@ -1,10 +1,14 @@
 import csv
 import numpy as np
 import pandas as pd
+
+from recommender.collaborative_filtering import FunkSVD
 from utils.data_loader import *
+from utils.preprocessing import build_mappers
 
 users_df = load_cleaned_users()
 ratings_df = load_cleaned_ratings()
+
 
 def add_new_user(user_name,password,
                  user_id = users_df.iloc[-1,0] + 1,
@@ -30,13 +34,15 @@ def add_new_user(user_name,password,
         writer.writerow(new_user_row)
         print("User added successfully")
 
-
+    input_df.iloc[-1] = new_user_row
+    build_mappers(load_cleaned_ratings())
 
 
 def add_rating(user_id : int,
                isbn : str,
                rating : int,
-               path = r"..\data\processed\ratings_cleaned.csv"):
+               path = r"..\data\processed\ratings_cleaned.csv",
+               input_df = ratings_df):
 
     """
     Appending a new rating row to ratings_cleaned.csv
@@ -48,11 +54,25 @@ def add_rating(user_id : int,
         print("User already rated that book")
         return
 
+    new_rating = [int(user_id),str(isbn),float(rating)]
+
     with open(path, "a",newline='') as f:
         writer = csv.writer(f)
-        writer.writerow([int(user_id),str(isbn),float(rating)])
+        writer.writerow(new_rating)
         print("Rating added successfully")
+
+    input_df.iloc[-1] = new_rating
+    build_mappers(load_cleaned_ratings())
 
 
 if __name__ == "__main__":
-    pass
+    add_new_user("Abdallah","ab1234")
+    add_rating(278844,'059035342X',8)
+    add_rating(278844,'0451523415',9)
+    add_rating(278844, '0804106304', 8)
+    add_rating(278844, '0060928336', 9)
+
+    model = FunkSVD()
+    model.fit()
+
+    print(model.recommend(278844))
