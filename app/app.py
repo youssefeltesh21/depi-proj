@@ -28,6 +28,7 @@ from utils.data_loader import (
     load_trained_model,
 )
 
+os.system("pip install dill")
 
 # ────────────────────────────────
 #   Streamlit caching wrappers
