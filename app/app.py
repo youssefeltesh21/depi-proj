@@ -14,7 +14,7 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
 # project-level helpers
-from app.app_helpers import (
+from .app_helpers import (
     add_new_user,
     add_rating,
     expand_model_for_new_users,
