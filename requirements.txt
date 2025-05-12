@@ -1,5 +1,3 @@
-import os
-os.system("pip install dill streamlit pandas numpy Pillow scikit-learn")
 streamlit>=1.24.0
 pandas>=1.5.0
 numpy>=1.21.0
