@@ -13,7 +13,7 @@ ratings_df = load_cleaned_ratings()
 def add_new_user(user_name,password,
                  user_id = users_df.iloc[-1,0] + 1,
                  loc = "Unknown", Age = None,
-                 path = r"..\data\processed\users_cleaned.csv",
+                 path = "data/processed/users_cleaned.csv",
                  input_df = users_df):
 
     """
@@ -41,7 +41,7 @@ def add_new_user(user_name,password,
 def add_rating(user_id : int,
                isbn : str,
                rating : int,
-               path = r"..\data\processed\ratings_cleaned.csv",
+               path = "data/processed/ratings_cleaned.csv",
                input_df = ratings_df):
 
     """
@@ -66,7 +66,7 @@ def add_rating(user_id : int,
     return True
 
 
-def expand_model_for_new_users(model, ratings_df, save_path='../models/collaborative_filtering_model.pkl'):
+def expand_model_for_new_users(model, ratings_df, save_path='models/collaborative_filtering_model.pkl'):
     """Update an existing model to handle new users"""
     new_maps = load_mappers()
     model.user_id_map = new_maps[0]
@@ -87,7 +87,7 @@ def expand_model_for_new_users(model, ratings_df, save_path='../models/collabora
 
 
 def personalize_model_for_user(model, user_id, ratings_df,
-                                save_path='../models/collaborative_filtering_model.pkl'):
+                                save_path='models/collaborative_filtering_model.pkl'):
 
     """Train factors just for a specific user"""
     user_ratings_df = ratings_df[ratings_df["User-ID"] == user_id]
@@ -104,7 +104,7 @@ def personalize_model_for_user(model, user_id, ratings_df,
 
     return model
 
-def save_trained_model(model, path  = '../models/collaborative_filtering_model.pkl'):
+def save_trained_model(model, path  = 'models/collaborative_filtering_model.pkl'):
     import dill
     with open(path, 'wb') as f:
         dill.dump(model, f)

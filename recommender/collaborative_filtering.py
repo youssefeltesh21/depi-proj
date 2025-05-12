@@ -74,7 +74,7 @@ class FunkSVD:
 
 
 
-def build_trained_model(path = r'..\models\collaborative_filtering_model.pkl'):
+def build_trained_model(path = 'models/collaborative_filtering_model.pkl'):
     model = FunkSVD()
     model.fit()
 

@@ -65,5 +65,5 @@ def build_mappers(ratings_df):
                        "user_id_map_inv": user_id_map_inv_str_keys,
                        "isbn_map_inv": isbn_map_inv}
 
-    with open("../data/processed/mappers.json", "w") as f:
+    with open("data/processed/mappers.json", "w") as f:
         json.dump(mappers_to_save, f, indent=4)

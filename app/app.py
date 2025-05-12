@@ -177,7 +177,7 @@ def main():
                         nav_page="Dashboard"
                     )
                     st.success(f"Welcome back, {u}!")
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error("Invalid credentials")
         with tab_reg:
@@ -211,7 +211,7 @@ def main():
                             nav_page="Dashboard"
                         )
                         st.success("Registered – welcome!")
-                        st.experimental_rerun()
+                        st.rerun()
         return
 
     # =========================================================
@@ -220,80 +220,30 @@ def main():
     st.sidebar.markdown(f"**Logged in as:** {st.session_state.username}")
     if st.sidebar.button("Sign Out"):
         st.session_state.clear()
-        st.experimental_rerun()
+        st.rerun()
 
     # Store current page in session state before navigation
     current_page = st.session_state.get("nav_page", "Dashboard")
 
-    nav_options = ["Dashboard", "Popular Books For You", "Recommendations", "Book Details"]
+    nav_options = ["Popular Books For You", "Recommendations"]
     page = st.sidebar.radio("Navigate", nav_options,
-                            index=nav_options.index(current_page),
+                            index=nav_options.index(current_page) if current_page in nav_options else 0,
                             key="nav_radio")
 
     # Update navigation state if changed
     if page != current_page:
         st.session_state.previous_page = current_page
         st.session_state.nav_page = page
-        if page != "Book Details":
-            st.session_state.selected_isbn = None
-        st.experimental_rerun()
+        st.rerun()
 
     books_df = get_books_df()
     ratings_df = get_ratings_df()
     user_id = st.session_state.user_id
 
     # ---------------------------------------------------------
-    #   Dashboard
-    # ---------------------------------------------------------
-    if page == "Dashboard":
-        st.header("📊 Dashboard")
-
-        # ISBN Search Section
-        st.subheader("Search by ISBN")
-        isbn_search = st.text_input("Enter ISBN to search for a book:", key="isbn_search")
-        if isbn_search:
-            match = books_df[books_df["ISBN"] == isbn_search.strip()]
-            if not match.empty:
-                book = match.iloc[0].to_dict()
-                show_book_card(book, idx=0)
-                if st.button("View Details", key=f"isbn_dtl_{isbn_search}"):
-                    st.session_state.selected_isbn = isbn_search.strip()
-                    st.session_state.previous_page = page
-                    st.session_state.nav_page = "Book Details"
-                    st.experimental_rerun()
-            else:
-                st.error("No book found with that ISBN.")
-
-        # Regular search bar
-        search = st.text_input("Search books by title or author", key="dashboard_search")
-        if search:
-            mask = (
-                    books_df["Book-Title"].str.contains(search, case=False, na=False) |
-                    books_df["Book-Author"].str.contains(search, case=False, na=False)
-            )
-            results = books_df[mask]
-            if results.empty:
-                st.info("No books found matching your search.")
-            else:
-                st.markdown(f"**Search results ({len(results)})**")
-                for _, row in results.head(10).iterrows():
-                    book = row.to_dict()
-                    show_book_card(book, idx=0)
-                    if st.button("View Details", key=f"search_dtl_{row.ISBN}"):
-                        st.session_state.selected_isbn = row.ISBN
-                        st.session_state.previous_page = page
-                        st.session_state.nav_page = "Book Details"
-                        st.experimental_rerun()
-
-        st.markdown(f"- **User ID:** {user_id}")
-        user_ratings = ratings_df[ratings_df["User-ID"] == user_id]
-        st.markdown(f"- **Books rated so far:** {len(user_ratings)}")
-        st.markdown("- **Actions**:\n  - Rate popular books for you\n  - See your recommendations")
-
-    # ---------------------------------------------------------
     #   Popular Books For You
     # ---------------------------------------------------------
-    elif page == "Popular Books For You":
+    if page == "Popular Books For You":
         st.header("📚 Popular Books For You")
 
         # Get top 500 popular books
@@ -335,18 +285,18 @@ def main():
                         # Clear the cache to get fresh recommendations
                         get_popular_books.clear()
 
-                        st.experimental_rerun()
+                        st.rerun()
 
                 if st.button(f"View Details for {book_row['Book-Title']}", key=f"pop_dtl_{isbn}"):
                     st.session_state.selected_isbn = isbn
                     st.session_state.previous_page = page
                     st.session_state.nav_page = "Book Details"
-                    st.experimental_rerun()
+                    st.rerun()
 
             # Button to refresh the displayed books
             if st.button("Show me different books"):
                 st.session_state.displayed_popular_books = []
-                st.experimental_rerun()
+                st.rerun()
 
     # ---------------------------------------------------------
     #   Recommendations
@@ -374,55 +324,7 @@ def main():
                     st.session_state.selected_isbn = isbn
                     st.session_state.previous_page = page
                     st.session_state.nav_page = "Book Details"
-                    st.experimental_rerun()
-
-    # ---------------------------------------------------------
-    #   Book Details
-    # ---------------------------------------------------------
-    elif page == "Book Details":
-        st.header("📖 Book Details")
-        isbn = st.session_state.get("selected_isbn")
-
-        if not isbn:
-            st.info("Use the search or navigation to select a book to view details.")
-            if st.button("← Back to Dashboard"):
-                st.session_state.nav_page = "Dashboard"
-                st.experimental_rerun()
-            return
-
-        if isbn:
-            match = books_df[books_df["ISBN"] == isbn]
-            if not match.empty:
-                book = match.iloc[0].to_dict()
-                show_book_card(book, idx=0)
-                st.markdown(f"**ISBN:** {isbn}")
-
-                # Back button
-                if st.button("← Back"):
-                    previous_page = st.session_state.get("previous_page", "Dashboard")
-                    st.session_state.nav_page = previous_page
-                    st.session_state.selected_isbn = None
-                    st.experimental_rerun()
-
-                # Rating section
-                already = isbn in ratings_df[ratings_df["User-ID"] == user_id]["ISBN"].values
-                if not already:
-                    r = st.slider("Your rating", 1, 10, 5, key="detail_rate")
-                    if st.button("Rate this book", key="btn_rate_detail"):
-                        if add_rating(user_id, isbn, r):
-                            refresh_caches()
-                            model = get_model()
-                            model = expand_model_for_new_users(model, get_ratings_df())
-                            model = personalize_model_for_user(model, user_id, get_ratings_df())
-                            save_trained_model(model)
-                            st.success("Rating saved and model updated!")
-                            # Stay on the same page after rating
-                            st.session_state.nav_page = "Book Details"
-                            st.experimental_rerun()
-                else:
-                    st.info("You have already rated this book.")
-            else:
-                st.error("No book found with that ISBN.")
+                    st.rerun()
 
 
 if __name__ == "__main__":
